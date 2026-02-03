@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Báo giá POS & Dịch vụ đi kèm</title>
+    <title>Báo giá POS - No Images</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -12,9 +12,7 @@
         
         /* === STYLE CHUNG === */
         .table-header { background-color: #eff6ff; color: #1e3a8a; }
-        .section-header { background-color: #fff7ed; color: #c2410c; font-weight: 700; text-transform: uppercase; font-size: 1.1rem; }
-        .sub-header { color: #1e40af; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-align: center; font-size: 1.5rem; text-transform: uppercase; }
-
+        
         /* Checkbox to hơn */
         input[type="checkbox"] { 
             width: 24px; height: 24px; cursor: pointer; accent-color: #1e40af;
@@ -22,26 +20,11 @@
 
         /* === RESPONSIVE: MOBILE (Dưới 768px) === */
         @media (max-width: 768px) {
+            /* Ẩn header bảng */
             thead { display: none; }
-            
-            /* Dòng tiêu đề phân mục trên mobile */
-            tr.section-row {
-                display: flex;
-                background-color: #fff7ed;
-                margin-top: 20px;
-                margin-bottom: 10px;
-                border-radius: 8px;
-                box-shadow: none;
-                border: 1px solid #fdba74;
-            }
-            tr.section-row td {
-                text-align: center;
-                width: 100%;
-                color: #c2410c;
-            }
 
-            /* Biến tr sản phẩm thành Card */
-            tr:not(.section-row) {
+            /* Biến tr thành Card */
+            tr {
                 display: flex;
                 flex-direction: column;
                 background: white;
@@ -55,18 +38,262 @@
 
             td { display: block; padding: 4px 0; border: none; }
 
-            /* Cột 1: Checkbox */
+            /* Cột 1: Checkbox (Góc phải trên) */
             td:nth-child(1) {
-                position: absolute; top: 16px; right: 16px; z-index: 10;
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                z-index: 10;
             }
+
             /* Cột 2: Tên thiết bị */
             td:nth-child(2) {
-                font-size: 1.1rem; padding-right: 40px; margin-bottom: 8px; font-weight: 700; color: #1e3a8a;
+                font-size: 1.1rem;
+                padding-right: 40px; 
+                margin-bottom: 8px;
+                font-weight: 700;
+                color: #1e3a8a;
             }
-            /* Cột 3: Thông tin */
+
+            /* Cột 3: Thông tin chi tiết (Giờ là cột thứ 3 vì đã bỏ ảnh) */
             td:nth-child(3) {
-                font-size: 0.95rem; color: #475569; margin-bottom: 12px; line-height: 1.5;
+                font-size: 0.95rem;
+                color: #475569;
+                margin-bottom: 12px;
+                line-height: 1.5;
             }
-            /* Cột 4: Giá bán */
+
+            /* Cột 4: Giá bán (Giờ là cột thứ 4) */
             td:nth-child(4) {
-                border-top: 1px dashed #cbd5e1; padding-top: 12px; text-align: right; font-size:
+                border-top: 1px dashed #cbd5e1;
+                padding-top: 12px;
+                text-align: right;
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #1e40af;
+            }
+            td:nth-child(4)::before {
+                content: "Thành tiền: ";
+                font-size: 0.9rem;
+                color: #64748b;
+                font-weight: normal;
+            }
+
+            /* Highlight khi chọn */
+            .selected-row {
+                background-color: #f0fdf4 !important;
+                border: 1px solid #22c55e !important;
+                box-shadow: 0 0 0 1px #22c55e;
+            }
+        }
+
+        /* === DESKTOP ONLY === */
+        @media (min-width: 769px) {
+            .selected-row { background-color: #f0fdf4 !important; border-left: 4px solid #22c55e; }
+        }
+
+        /* Sticky Footer */
+        .sticky-footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(255,255,255,0.98);
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="max-w-5xl mx-auto p-4 md:p-10">
+        <header class="text-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold text-blue-900 uppercase">Báo Giá Thiết Bị POS</h1>
+            <p class="text-gray-500 text-sm mt-1">Chọn thiết bị để tính toán chi phí</p>
+        </header>
+
+        <div class="md:bg-white md:rounded-lg md:shadow md:border md:border-gray-200 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead class="table-header text-sm font-bold uppercase tracking-wider border-b-2 border-blue-200">
+                    <tr>
+                        <th class="p-4 text-center w-16">Chọn</th>
+                        <th class="p-4 w-1/4">Thiết bị</th>
+                        <th class="p-4">Thông tin chi tiết</th>
+                        <th class="p-4 text-right w-32">Giá bán (€)</th>
+                    </tr>
+                </thead>
+                <tbody id="product-list" class="md:divide-y md:divide-gray-100 text-sm md:text-base">
+                    
+                    <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="1a. PosNow T2s (1 màn hình)" data-price="2800"></td>
+                        <td class="p-4 font-bold text-blue-800">1a. PosNow <span class="text-red-500">T2s</span></td>
+                        <td class="p-4 text-gray-600">1 màn hình 15.6" Full HD</td>
+                        <td class="p-4 text-right font-bold">2.800 €</td>
+                    </tr>
+
+                    <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="1a. PosNow T2s (2 màn hình)" data-price="3000"></td>
+                        <td class="p-4 font-bold text-blue-800">1a. PosNow <span class="text-red-500">T2s</span> (Dual)</td>
+                        <td class="p-4 text-gray-600">2 màn hình 15.6" + màn phụ 10.1"</td>
+                        <td class="p-4 text-right font-bold">3.000 €</td>
+                    </tr>
+
+                    <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="1b. PosNow T2s Lite (1 màn hình)" data-price="2800"></td>
+                        <td class="p-4 font-bold text-blue-800">1b. PosNow <span class="text-red-500">T2s Lite</span></td>
+                        <td class="p-4 text-gray-600">1 màn hình 15.6"</td>
+                        <td class="p-4 text-right font-bold">2.800 €</td>
+                    </tr>
+
+                     <tr class="transition hover:bg-gray-50 md:bg-blue-50/30">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="2. Gói cài đặt hệ thống" data-price="250"></td>
+                        <td class="p-4 font-bold text-blue-800">2. Gói cài đặt hệ thống</td>
+                        <td class="p-4 text-gray-600">
+                            <ul class="list-disc list-inside text-sm">
+                                <li>Triển khai server, nhập menu, logo</li>
+                                <li>Mẫu hướng dẫn báo cáo thuế, hướng dẫn online</li>
+                            </ul>
+                        </td>
+                        <td class="p-4 text-right font-bold">250 €</td>
+                    </tr>
+
+                    <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="3. TSE Cloud 1 năm" data-price="120"></td>
+                        <td class="p-4 font-bold text-blue-800">3. TSE Cloud</td>
+                        <td class="p-4 text-gray-600">Gói Cloud - 1 năm</td>
+                        <td class="p-4 text-right font-bold">120 €</td>
+                    </tr>
+                    <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="3. TSE USB 5 năm" data-price="500"></td>
+                        <td class="p-4 font-bold text-blue-800">3. TSE USB</td>
+                        <td class="p-4 text-gray-600">Thiết bị USB phần cứng - 5 năm</td>
+                        <td class="p-4 text-right font-bold">500 €</td>
+                    </tr>
+
+                    <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="4a. Máy in bon" data-price="350"></td>
+                        <td class="p-4 font-bold text-blue-800">4a. Máy in bon</td>
+                        <td class="p-4 text-gray-600">In nhiệt 80mm, Tự động cắt, LAN/Wifi</td>
+                        <td class="p-4 text-right font-bold">350 €</td>
+                    </tr>
+                     <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="4a. Máy in nhãn" data-price="400"></td>
+                        <td class="p-4 font-bold text-blue-800">4a. Máy in nhãn</td>
+                        <td class="p-4 text-gray-600">Máy in tem nhãn (Sticker) chuyên dụng</td>
+                        <td class="p-4 text-right font-bold">400 €</td>
+                    </tr>
+
+                    <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="5. Modem wifi" data-price="250"></td>
+                        <td class="p-4 font-bold text-blue-800">5. Modem wifi</td>
+                        <td class="p-4 text-gray-600">Router TPLink Archer C1200 (Hoặc tương đương)</td>
+                        <td class="p-4 text-right font-bold">250 €</td>
+                    </tr>
+
+                     <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="6. Switch 5 Port" data-price="150"></td>
+                        <td class="p-4 font-bold text-blue-800">6. Bộ Switch 5</td>
+                        <td class="p-4 text-gray-600">Tp-Link 5-Port PoE + Switch</td>
+                        <td class="p-4 text-right font-bold">150 €</td>
+                    </tr>
+
+                     <tr class="transition hover:bg-gray-50 border-t md:border-t-0 border-gray-100">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="8a. PosNow V2 Pro" data-price="1200"></td>
+                        <td class="p-4 font-bold text-blue-800">8a. PosNow <span class="text-red-500">V2 Pro</span></td>
+                        <td class="p-4 text-gray-600">Máy cầm tay Android 7.1, In hóa đơn tích hợp</td>
+                        <td class="p-4 text-right font-bold">1.200 €</td>
+                    </tr>
+                    <tr class="transition hover:bg-gray-50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="Phụ kiện: Đế sạc V2Pro" data-price="100"></td>
+                        <td class="p-4 pl-8 text-gray-500 italic">↳ Đế sạc V2Pro</td>
+                        <td class="p-4 text-gray-600">Đế sạc nhanh để bàn</td>
+                        <td class="p-4 text-right font-bold">100 €</td>
+                    </tr>
+
+                    <tr class="transition hover:bg-gray-50 md:bg-yellow-50/50">
+                        <td class="p-4 text-center"><input type="checkbox" class="product-check" data-name="9. Dịch vụ lắp đặt" data-price="500"></td>
+                        <td class="p-4 font-bold text-blue-800">9. Lắp đặt & Đào tạo</td>
+                        <td class="p-4 text-gray-600">Lắp đặt tận nơi, Đào tạo nhân viên & chủ quán</td>
+                        <td class="p-4 text-right font-bold">500 €</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="sticky-footer p-3 md:p-4">
+        <div class="max-w-5xl mx-auto flex justify-between items-center gap-2">
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-500 uppercase font-bold">Tổng thanh toán:</span>
+                <span class="text-2xl md:text-3xl font-black text-blue-900" id="total-price">0 €</span>
+            </div>
+            
+            <button onclick="exportToTXT()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-bold shadow-lg active:scale-95 transition flex items-center gap-2 text-sm md:text-base">
+                <i class="fa-solid fa-download"></i>
+                <span class="hidden md:inline">Xuất File Báo Giá</span>
+                <span class="md:hidden">Xuất File</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const checkboxes = document.querySelectorAll('.product-check');
+        const totalPriceEl = document.getElementById('total-price');
+
+        // Định dạng tiền tệ
+        const formatMoney = (amount) => amount.toLocaleString('de-DE') + ' €';
+
+        // Tính tổng
+        function calculateTotal() {
+            let total = 0;
+            checkboxes.forEach(cb => {
+                const row = cb.closest('tr');
+                if (cb.checked) {
+                    total += parseInt(cb.getAttribute('data-price'));
+                    row.classList.add('selected-row');
+                } else {
+                    row.classList.remove('selected-row');
+                }
+            });
+            totalPriceEl.innerText = formatMoney(total);
+        }
+
+        checkboxes.forEach(cb => cb.addEventListener('change', calculateTotal));
+
+        // Xuất file
+        function exportToTXT() {
+            let total = 0;
+            let selectedItems = [];
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    selectedItems.push({
+                        name: cb.getAttribute('data-name'),
+                        price: parseInt(cb.getAttribute('data-price'))
+                    });
+                    total += parseInt(cb.getAttribute('data-price'));
+                }
+            });
+
+            if(total === 0) {
+                alert("Vui lòng chọn ít nhất một sản phẩm!");
+                return;
+            }
+
+            let content = "BAO GIA POS SYSTEM\n=========================\n";
+            content += `Ngay: ${new Date().toLocaleDateString('vi-VN')}\n\n`;
+            
+            selectedItems.forEach((item, i) => {
+                content += `${i+1}. ${item.name}\n   Gia: ${formatMoney(item.price)}\n\n`;
+            });
+            
+            content += "-------------------------\n";
+            content += `TONG CONG: ${formatMoney(total)}`;
+
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Bao_Gia_${Date.now()}.txt`;
+            link.click();
+        }
+    </script>
+</body>
+</html>

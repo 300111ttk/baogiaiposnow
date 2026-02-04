@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ thống Báo Giá POS (Final Fix)</title>
+    <title>Hệ thống Báo Giá POS (Final Table Fix)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -12,21 +12,15 @@
     <style>
         body { font-family: 'Roboto', sans-serif; background-color: #f8fafc; padding-bottom: 120px; }
         .table-header { background-color: #eff6ff; color: #1e3a8a; }
-        
-        /* Tab Styles */
         .tab-btn { padding: 12px 24px; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap; }
         .tab-btn:hover { color: #1e40af; background-color: #f1f5f9; }
         .tab-btn.active { color: #1e40af; border-bottom-color: #1e40af; background-color: #eff6ff; }
-        
-        /* Section Styles */
         .section-header { text-align: center; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; padding: 15px; margin-top: 20px; }
         .text-blue-title { color: #1e3a8a; } 
         .text-orange-title { color: #c2410c; }
-        
-        /* Checkbox */
         input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; accent-color: #1e40af; }
 
-        /* === MOBILE RESPONSIVE CHO WEB === */
+        /* Giao diện Mobile cho WEB */
         @media (max-width: 768px) {
             thead { display: none; }
             tr.section-row td { display: block; width: 100%; text-align: center; font-weight: bold; padding: 10px; }
@@ -41,8 +35,11 @@
             .tab-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         }
         @media (min-width: 769px) { .selected-row { background-color: #f0fdf4 !important; border-left: 4px solid #22c55e; } }
-        
         .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.98); border-top: 1px solid #e5e7eb; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05); z-index: 50; }
+        
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .modal-content { background-color: white; margin: 10% auto; padding: 20px; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
 <body class="text-slate-800">
@@ -150,6 +147,22 @@
         </div>
     </div>
 
+    <div id="quickview-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="text-xl font-bold text-blue-900 uppercase">Sản phẩm đã chọn</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            <div id="modal-items-list" class="max-h-[60vh] overflow-y-auto mb-4">
+                </div>
+            <div class="border-t pt-4 flex justify-between items-center">
+                <span class="font-bold text-lg">Tổng cộng:</span>
+                <span id="modal-total" class="text-2xl font-black text-orange-600">0 €</span>
+            </div>
+            <button onclick="closeModal()" class="w-full mt-6 bg-blue-900 text-white py-3 rounded-lg font-bold">Đóng</button>
+        </div>
+    </div>
+
     <div class="sticky-footer p-3 md:p-4">
         <div class="max-w-5xl mx-auto flex justify-between items-center gap-2">
             <div class="flex flex-col">
@@ -157,11 +170,17 @@
                 <span class="text-2xl md:text-3xl font-black text-blue-900" id="total-price">0 €</span>
             </div>
             
-            <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg font-bold shadow-lg active:scale-95 transition flex items-center gap-2 text-sm md:text-base">
-                <i class="fa-solid fa-file-pdf"></i>
-                <span class="hidden md:inline">Xuất Báo Giá (PDF)</span>
-                <span class="md:hidden">Xuất PDF</span>
-            </button>
+            <div class="flex gap-2">
+                <button onclick="showQuickView()" class="bg-blue-100 hover:bg-blue-200 text-blue-900 px-4 py-3 rounded-lg font-bold transition flex items-center gap-2 text-sm md:text-base border border-blue-200">
+                    <i class="fa-solid fa-eye"></i>
+                    <span class="hidden md:inline">Xem nhanh</span>
+                </button>
+                <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg font-bold shadow-lg active:scale-95 transition flex items-center gap-2 text-sm md:text-base">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span class="hidden md:inline">Xuất Báo Giá (PDF)</span>
+                    <span class="md:hidden">Xuất PDF</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -194,102 +213,138 @@
         }
         checkboxes.forEach(cb => cb.addEventListener('change', calculateTotal));
 
-        // === HÀM XUẤT PDF ĐÃ FIX LỖI MOBILE & CẮT TRANG ===
-        function exportToPDF() {
+        // === HÀM XEM NHANH BÁO GIÁ ===
+        function showQuickView() {
             let total = 0;
-            let selectedItems = [];
+            let html = '';
+            let count = 0;
+
             checkboxes.forEach(cb => {
                 if (cb.checked) {
-                    selectedItems.push({
-                        name: cb.getAttribute('data-name'),
-                        price: parseInt(cb.getAttribute('data-price'))
-                    });
-                    total += parseInt(cb.getAttribute('data-price'));
+                    count++;
+                    const price = parseInt(cb.getAttribute('data-price'));
+                    total += price;
+                    html += `
+                        <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-blue-800 text-sm">${count}. ${cb.getAttribute('data-name')}</span>
+                            </div>
+                            <span class="font-bold text-gray-700">${formatMoney(price)}</span>
+                        </div>
+                    `;
                 }
             });
 
-            if(total === 0) {
-                alert("Vui lòng chọn ít nhất một sản phẩm!");
+            if (count === 0) {
+                alert("Vui lòng chọn ít nhất một sản phẩm để xem!");
                 return;
             }
 
-            const today = new Date().toLocaleDateString('vi-VN');
-            let itemsHtml = '';
-            selectedItems.forEach((item, index) => {
-                itemsHtml += `
-                    <tr style="border-bottom: 1px solid #eee; page-break-inside: avoid;">
-                        <td style="padding: 10px; text-align: center; vertical-align: middle;">${index + 1}</td>
-                        <td style="padding: 10px; vertical-align: middle;">${item.name}</td>
-                        <td style="padding: 10px; text-align: right; vertical-align: middle;">${formatMoney(item.price)}</td>
-                    </tr>
-                `;
-            });
-
-            // THÊM CSS RESET ĐỂ ÉP KIỂU BẢNG (FIX LỖI CARD VIEW TRÊN MOBILE)
-            const styleReset = `
-                <style>
-                    .pdf-container { background: white; width: 100%; font-family: 'Roboto', sans-serif; }
-                    .pdf-table { width: 100% !important; border-collapse: collapse !important; margin-bottom: 20px; }
-                    .pdf-table tr { display: table-row !important; border: none !important; margin: 0 !important; box-shadow: none !important; background: transparent !important; }
-                    .pdf-table td, .pdf-table th { display: table-cell !important; padding: 12px !important; border: 1px solid #c2d1e8 !important; }
-                    .pdf-table th { background-color: #eff6ff !important; color: #1e3a8a !important; font-weight: 700; text-transform: uppercase; font-size: 14px; }
-                    .pdf-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1e3a8a; padding-bottom: 20px; }
-                    .pdf-footer { text-align: right; margin-top: 20px; padding-top: 10px; border-top: 2px solid #eee; }
-                    .pdf-total { font-size: 32px; color: #c2410c; margin: 5px 0; font-weight: 900; }
-                </style>
-            `;
-
-            const invoiceContent = `
-                <div class="pdf-container" style="padding: 20px;">
-                    ${styleReset}
-                    <div class="pdf-header">
-                        <h1 style="color: #1e3a8a; font-size: 28px; margin: 0;">BẢNG BÁO GIÁ THIẾT BỊ POS</h1>
-                        <p style="color: #666; margin-top: 10px; font-style: italic;">Ngày tạo: ${today}</p>
-                    </div>
-                    
-                    <table class="pdf-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px;">STT</th>
-                                <th>Tên Sản Phẩm / Dịch Vụ</th>
-                                <th style="text-align: right;">Thành Tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${itemsHtml}
-                        </tbody>
-                    </table>
-
-                    <div style="page-break-inside: avoid;">
-                        <div class="pdf-footer">
-                            <p style="font-size: 16px; color: #666; font-weight: 500;">Tổng cộng:</p>
-                            <h2 class="pdf-total">${formatMoney(total)}</h2>
-                        </div>
-
-                        <div style="margin-top: 40px; text-align: center; font-size: 13px; color: #888; background: #f8fafc; padding: 20px; border-radius: 8px;">
-                            <p style="margin: 5px 0;">Cảm ơn quý khách đã quan tâm đến giải pháp POS của chúng tôi!</p>
-                            <p style="margin: 5px 0;">Báo giá này có hiệu lực trong vòng 30 ngày.</p>
-                            <p style="margin-top: 10px; font-weight: bold; color: #1e3a8a;">Hotline Hỗ Trợ: 0123 456 789</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Cấu hình windowWidth: 1200 để ép render giao diện desktop
-            const opt = {
-                margin:       [10, 10, 10, 10],
-                filename:     `Bao_Gia_POS_${Date.now()}.pdf`,
-                image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 1200 }, 
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-
-            const element = document.createElement('div');
-            element.innerHTML = invoiceContent;
-            
-            html2pdf().from(element).set(opt).save();
+            document.getElementById('modal-items-list').innerHTML = html;
+            document.getElementById('modal-total').innerText = formatMoney(total);
+            document.getElementById('quickview-modal').style.display = 'block';
         }
+
+        function closeModal() {
+            document.getElementById('quickview-modal').style.display = 'none';
+        }
+
+        // Đóng modal khi click ra ngoài
+        window.onclick = function(event) {
+            const modal = document.getElementById('quickview-modal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+// === HÀM XUẤT PDF: SỬA LỖI TRANG TRẮNG & ÉP LÊN ĐỈNH TRANG ===
+function exportToPDF() {
+    let total = 0;
+    let selectedItems = [];
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            selectedItems.push({
+                name: cb.getAttribute('data-name'),
+                price: parseInt(cb.getAttribute('data-price'))
+            });
+            total += parseInt(cb.getAttribute('data-price'));
+        }
+    });
+
+    if(total === 0) {
+        alert("Vui lòng chọn ít nhất một sản phẩm!");
+        return;
+    }
+
+    const today = new Date().toLocaleDateString('vi-VN');
+    
+    let itemsHtml = '';
+    selectedItems.forEach((item, index) => {
+        itemsHtml += `
+            <tr style="page-break-inside: avoid !important; border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 10px 8px; text-align: center; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; font-size: 13px;">${index + 1}</td>
+                <td style="padding: 10px 15px; text-align: left; border-right: 1px solid #e2e8f0; font-size: 13px;">${item.name}</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 600; border-right: 1px solid #e2e8f0; font-size: 13px;">${formatMoney(item.price)}</td>
+            </tr>
+        `;
+    });
+
+    // Tạo container ảo và ép CSS trực tiếp để không bị trắng
+    const element = document.createElement('div');
+    element.innerHTML = `
+        <div style="width: 760px; padding: 20px 40px; background: white; color: #000;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #1e3a8a; font-size: 26px; margin: 0; font-weight: 800; text-transform: uppercase;">Bảng Báo Giá Thiết Bị POS</h1>
+                <p style="color: #64748b; margin-top: 10px; font-style: italic; font-size: 14px;">Ngày tạo: ${today}</p>
+                <div style="width: 100%; height: 2px; background: #1e3a8a; margin-top: 20px;"></div>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; page-break-inside: auto;">
+                <thead>
+                    <tr style="background-color: #eff6ff; color: #1e3a8a;">
+                        <th style="padding: 12px 8px; border: 1px solid #cbd5e1; width: 50px; text-align: center;">STT</th>
+                        <th style="padding: 12px 15px; border: 1px solid #cbd5e1; text-align: center;">Tên Sản Phẩm / Dịch Vụ</th>
+                        <th style="padding: 12px 15px; border: 1px solid #cbd5e1; width: 150px; text-align: center;">Thành Tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+            </table>
+
+            <div style="margin-top: 30px; text-align: right; page-break-inside: avoid;">
+                <p style="font-size: 16px; color: #64748b; margin: 0;">Tổng cộng:</p>
+                <h2 style="font-size: 36px; color: #c2410c; margin: 5px 0; font-weight: 900;">${formatMoney(total)}</h2>
+            </div>
+
+            <div style="margin-top: 50px; text-align: center; font-size: 13px; color: #64748b; background: #f8fafc; padding: 30px; border-radius: 8px; page-break-inside: avoid;">
+                <p>Cảm ơn quý khách đã quan tâm đến giải pháp của chúng tôi!</p>
+                <p style="font-weight: 700; color: #1e3a8a; margin-top: 10px;">Hotline: 0123 456 789</p>
+            </div>
+        </div>
+    `;
+
+    // Cấu hình xuất PDF
+    const opt = {
+        margin: 0, 
+        filename: `Bao_Gia_POS_${Date.now()}.pdf`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { 
+            scale: 2, 
+            useCORS: true,
+            logging: false,
+            letterRendering: true,
+            scrollY: 0
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['legacy'] } 
+    };
+
+    // Thực hiện render với một chút delay để tránh trang trắng
+    html2pdf().from(element).set(opt).toPdf().get('pdf').then(function (pdf) {
+        // Có thể thêm xử lý số trang ở đây nếu cần
+    }).save();
+}
     </script>
 </body>
 </html>
